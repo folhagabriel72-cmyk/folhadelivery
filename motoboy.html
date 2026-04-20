@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoDesk — Motoboy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #151515;
+    --surface2: #1e1e1e;
+    --border: #2a2a2a;
+    --accent: #3ecf8e;
+    --accent2: #2ab07a;
+    --orange: #ff6b2b;
+    --text: #f0ede8;
+    --muted: #777;
+    --blue: #4da6ff;
+    --red: #ff4d4d;
+    --yellow: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; max-width: 480px; margin: 0 auto; }
+
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; }
+  .logo span { color: var(--accent); }
+
+  .container { padding: 20px; }
+
+  /* LOGIN */
+  #screen-login { display: flex; flex-direction: column; justify-content: center; min-height: calc(100vh - 65px); }
+  .login-hero { text-align: center; margin-bottom: 32px; }
+  .login-icon { font-size: 64px; margin-bottom: 16px; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .login-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; margin-bottom: 8px; }
+  .login-sub { color: var(--muted); font-size: 14px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 13px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: border-color .2s;
+  }
+  .form-group input:focus { border-color: var(--accent); }
+
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 500; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+  .btn-green { background: var(--accent); color: #0a0a0a; }
+  .btn-green:hover { background: var(--accent2); }
+  .btn-outline { background: transparent; color: var(--muted); border: 1px solid var(--border); font-size: 13px; padding: 10px; }
+  .btn-outline:hover { border-color: var(--red); color: var(--red); }
+  .btn-orange { background: var(--orange); color: #fff; }
+  .btn-orange:hover { background: #e55a1e; }
+  .btn-disabled { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); cursor: default; }
+
+  /* DASHBOARD */
+  #screen-dashboard { display: none; flex-direction: column; gap: 16px; }
+
+  .profile-bar {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px;
+  }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(62,207,142,.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; flex-shrink: 0; border: 2px solid var(--accent); }
+  .profile-info { flex: 1; }
+  .profile-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .profile-status { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .status-toggle { display: flex; gap: 8px; }
+  .toggle-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-family: 'DM Sans', sans-serif; transition: all .2s; text-align: center; }
+  .toggle-btn.active-green { background: rgba(62,207,142,.15); border-color: rgba(62,207,142,.5); color: var(--accent); }
+  .toggle-btn.active-yellow { background: rgba(255,209,102,.15); border-color: rgba(255,209,102,.5); color: var(--yellow); }
+
+  /* NOTIFICAÇÃO DE CORRIDA */
+  .corrida-banner {
+    background: linear-gradient(135deg, #1a2e1f 0%, #152213 100%);
+    border: 1.5px solid var(--accent); border-radius: 16px; padding: 20px;
+    animation: glowPulse 1.5s ease-in-out infinite;
+    position: relative; overflow: hidden;
+  }
+  @keyframes glowPulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(62,207,142,.3); }
+    50%      { box-shadow: 0 0 20px 4px rgba(62,207,142,.2); }
+  }
+  .corrida-banner::before {
+    content: ''; position: absolute; top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle at center, rgba(62,207,142,.05) 0%, transparent 60%);
+    animation: rotate 4s linear infinite;
+  }
+  @keyframes rotate { to { transform: rotate(360deg); } }
+  .corrida-tag { display: inline-block; background: var(--accent); color: #0a0a0a; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 12px; }
+  .corrida-cliente { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 6px; position: relative; }
+  .corrida-end { font-size: 14px; color: rgba(240,237,232,.7); margin-bottom: 4px; position: relative; }
+  .corrida-itens { font-size: 13px; color: var(--muted); margin-bottom: 16px; position: relative; }
+  .corrida-valor { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; color: var(--accent); margin-bottom: 16px; position: relative; }
+  .corrida-timer { font-size: 12px; color: var(--yellow); margin-bottom: 14px; position: relative; }
+  .corrida-actions { display: flex; gap: 10px; position: relative; }
+  .btn-accept { flex: 1; }
+  .btn-recusar { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 10px; padding: 12px; font-size: 13px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+  .btn-recusar:hover { border-color: var(--red); color: var(--red); }
+
+  /* EM ROTA */
+  .em-rota-card {
+    background: var(--surface); border: 1.5px solid rgba(255,107,43,.4);
+    border-radius: 16px; padding: 20px;
+  }
+  .em-rota-tag { display: inline-block; background: var(--orange); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; letter-spacing: 1px; margin-bottom: 12px; }
+  .em-rota-cliente { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; margin-bottom: 6px; }
+  .em-rota-end { font-size: 14px; color: var(--muted); margin-bottom: 14px; }
+  .maps-btn { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; background: rgba(77,166,255,.1); border: 1px solid rgba(77,166,255,.3); color: var(--blue); border-radius: 10px; padding: 10px; font-size: 13px; font-family: 'DM Sans', sans-serif; margin-bottom: 12px; }
+  .maps-btn:hover { background: rgba(77,166,255,.2); }
+
+  /* HISTÓRICO */
+  .hist-item { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .hist-cliente { font-size: 14px; font-weight: 500; }
+  .hist-end { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .hist-valor { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; color: var(--accent); }
+
+  .section-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 12px; }
+
+  .idle-state { text-align: center; padding: 32px 20px; color: var(--muted); }
+  .idle-icon { font-size: 48px; margin-bottom: 12px; opacity: .3; }
+  .idle-text { font-size: 14px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-ok { background: rgba(62,207,142,.15); color: var(--accent); }
+
+  .spinner { border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; width: 18px; height: 18px; animation: spin .6s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Moto<span>Desk</span></div>
+  <div id="header-status" style="font-size:12px;color:var(--muted)">App do motoboy</div>
+</header>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="screen-login">
+    <div class="login-hero">
+      <div class="login-icon">🛵</div>
+      <div class="login-title">Olá, motoboy!</div>
+      <div class="login-sub">Entre pra começar a receber corridas</div>
+    </div>
+    <div class="card">
+      <div class="form-group">
+        <label>Seu nome completo</label>
+        <input type="text" id="inp-nome" placeholder="Ex: Carlos Oliveira">
+      </div>
+      <div class="form-group">
+        <label>Telefone / WhatsApp</label>
+        <input type="tel" id="inp-tel" placeholder="(xx) xxxxx-xxxx">
+      </div>
+      <div id="login-erro" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none"></div>
+      <button class="btn btn-green" onclick="entrar()">Entrar e ficar disponível</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="screen-dashboard">
+
+    <div class="profile-bar">
+      <div class="avatar" id="dash-avatar">?</div>
+      <div class="profile-info">
+        <div class="profile-name" id="dash-nome">—</div>
+        <div class="profile-status" id="dash-status-txt">Carregando...</div>
+      </div>
+      <button class="btn-outline btn" style="width:auto;padding:8px 14px;font-size:12px" onclick="sair()">Sair</button>
+    </div>
+
+    <div class="status-toggle">
+      <div class="toggle-btn" id="toggle-disp" onclick="setStatus('disponivel')">● Disponível</div>
+      <div class="toggle-btn" id="toggle-pausa" onclick="setStatus('pausa')">⏸ Pausa</div>
+    </div>
+
+    <!-- Corrida disponível -->
+    <div id="sec-corrida"></div>
+
+    <!-- Em rota -->
+    <div id="sec-rota"></div>
+
+    <!-- Aguardando -->
+    <div id="sec-idle"></div>
+
+    <!-- Histórico -->
+    <div id="sec-historico"></div>
+
+  </div>
+</div>
+
+<!-- AUDIO para notificação -->
+<audio id="beep-audio" preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJiVhVBHSnueoI1xaXGNsK6UcF1dcpWtqJBqWVhqjKqllW5hYXSWr6aQbWJleZqzp5BtYWR5na+liXBhYXCYq6OLbGFgeZqvp5FvY2Z/nrGnjXJkZIWhtqySeWlniKWzp5B3Z2mMpbKll3RiZYqjsaSSdl9mlKSunpSBaW6Ro66ij4BlcZGnraKMfWZ0kKWupI1+anmUqaugjH5pe5OoqKCLe2h8l6iooI1+an2TqKihi4FqfZaoqKGNgWp9lqiooo2Bam" type="audio/wav">
+</audio>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, update, onValue, push, serverTimestamp, get }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import firebaseConfig from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+let motoAtual = JSON.parse(localStorage.getItem('motoAtual') || 'null');
+let motoRef, pedidosRef;
+let ultimasCorridas = new Set();
+let statusAtual = 'disponivel';
+
+// ── ENTRAR ────────────────────────────────────────────────
+window.entrar = async function() {
+  const nome = document.getElementById('inp-nome').value.trim();
+  const tel  = document.getElementById('inp-tel').value.trim();
+  if (!nome || !tel) { showErro('Preencha nome e telefone'); return; }
+
+  const id = 'moto_' + Date.now();
+  motoAtual = { id, nome, tel };
+  localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+
+  await set(ref(db, 'motoboys/' + id), {
+    nome, tel, online: true, status: 'disponivel', entradaEm: serverTimestamp()
+  });
+
+  iniciarDashboard();
+};
+
+// ── SAIR ──────────────────────────────────────────────────
+window.sair = async function() {
+  if (motoAtual) {
+    await update(ref(db, 'motoboys/' + motoAtual.id), { online: false });
+    localStorage.removeItem('motoAtual');
+    motoAtual = null;
+  }
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('screen-dashboard').style.display = 'none';
+};
+
+// ── SET STATUS ────────────────────────────────────────────
+window.setStatus = function(s) {
+  statusAtual = s;
+  update(ref(db, 'motoboys/' + motoAtual.id), { status: s });
+  renderToggle(s);
+};
+
+function renderToggle(s) {
+  document.getElementById('toggle-disp').className  = 'toggle-btn' + (s === 'disponivel' ? ' active-green' : '');
+  document.getElementById('toggle-pausa').className = 'toggle-btn' + (s === 'pausa' ? ' active-yellow' : '');
+  document.getElementById('header-status').textContent = s === 'disponivel' ? '🟢 Online' : '⏸ Em pausa';
+  document.getElementById('dash-status-txt').textContent = s === 'disponivel' ? 'Disponível para corridas' : 'Em pausa';
+}
+
+// ── ACEITAR CORRIDA ───────────────────────────────────────
+window.aceitarCorrida = async function(pid) {
+  await update(ref(db, 'pedidos/' + pid), {
+    status: 'em-rota', motoId: motoAtual.id, motoNome: motoAtual.nome
+  });
+  await update(ref(db, 'motoboys/' + motoAtual.id), { status: 'ocupado', corridaAtual: pid });
+  setStatus('ocupado');
+};
+
+// ── MARCAR ENTREGUE ───────────────────────────────────────
+window.marcarEntregue = async function(pid) {
+  await update(ref(db, 'pedidos/' + pid), { status: 'entregue', entregueEm: serverTimestamp() });
+  await update(ref(db, 'motoboys/' + motoAtual.id), { status: 'disponivel', corridaAtual: null });
+  statusAtual = 'disponivel';
+  renderToggle('disponivel');
+};
+
+// ── INICIAR DASHBOARD ─────────────────────────────────────
+function iniciarDashboard() {
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-dashboard').style.display = 'flex';
+  document.getElementById('screen-dashboard').style.flexDirection = 'column';
+  document.getElementById('screen-dashboard').style.gap = '14px';
+
+  const ini = motoAtual.nome.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase();
+  document.getElementById('dash-avatar').textContent = ini;
+  document.getElementById('dash-nome').textContent = motoAtual.nome;
+
+  renderToggle(statusAtual);
+
+  // Watch pedidos
+  onValue(ref(db, 'pedidos'), snap => {
+    const data = snap.val() || {};
+    const todos = Object.entries(data).map(([id, v]) => ({ id, ...v }));
+
+    // Corridas disponíveis (chamando, sem motoboy)
+    const disponiveis = todos.filter(p => p.status === 'chamando' && !p.motoId);
+
+    // Minha corrida ativa
+    const minhaRota = todos.find(p => p.status === 'em-rota' && p.motoId === motoAtual.id);
+
+    // Histórico
+    const hist = todos.filter(p => p.status === 'entregue' && p.motoId === motoAtual.id);
+
+    // Notificar novas corridas
+    if (statusAtual === 'disponivel') {
+      disponiveis.forEach(p => {
+        if (!ultimasCorridas.has(p.id)) {
+          ultimasCorridas.add(p.id);
+          tocarNotificacao();
+        }
+      });
+    }
+
+    renderCorridas(disponiveis);
+    renderRota(minhaRota);
+    renderHistorico(hist);
+  });
+}
+
+// ── RENDER CORRIDAS DISPONÍVEIS ───────────────────────────
+function renderCorridas(lista) {
+  const el = document.getElementById('sec-corrida');
+  const idleEl = document.getElementById('sec-idle');
+
+  if (statusAtual === 'pausa') {
+    el.innerHTML = '';
+    idleEl.innerHTML = `<div class="idle-state"><div class="idle-icon">⏸</div><div class="idle-text">Você está em pausa</div></div>`;
+    return;
+  }
+
+  if (!lista.length) {
+    el.innerHTML = '';
+    idleEl.innerHTML = `<div class="idle-state"><div class="idle-icon">🛵</div><div class="idle-text">Aguardando corridas...</div></div>`;
+    return;
+  }
+
+  idleEl.innerHTML = '';
+  el.innerHTML = lista.map(p => `
+    <div class="corrida-banner">
+      <div class="corrida-tag">Nova corrida!</div>
+      <div class="corrida-cliente">${p.cliente}</div>
+      <div class="corrida-end">📍 ${p.endereco}</div>
+      <div class="corrida-itens">${p.itens}</div>
+      ${p.valor && p.valor !== '—' ? `<div class="corrida-valor">R$ ${p.valor}</div>` : ''}
+      <div class="corrida-actions">
+        <button class="btn btn-green btn-accept" onclick="aceitarCorrida('${p.id}')">✓ Aceitar corrida</button>
+        <button class="btn-recusar" onclick="recusar('${p.id}')">Recusar</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── RENDER EM ROTA ────────────────────────────────────────
+function renderRota(p) {
+  const el = document.getElementById('sec-rota');
+  if (!p) { el.innerHTML = ''; return; }
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.endereco)}`;
+  el.innerHTML = `
+    <div class="em-rota-card">
+      <div class="em-rota-tag">Em rota</div>
+      <div class="em-rota-cliente">${p.cliente}</div>
+      <div class="em-rota-end">📍 ${p.endereco}</div>
+      <div class="em-rota-end" style="margin-bottom:14px">${p.itens}</div>
+      <a href="${mapsUrl}" target="_blank" class="maps-btn">🗺 Abrir no Google Maps</a>
+      <button class="btn btn-orange" onclick="marcarEntregue('${p.id}')">✓ Entregue!</button>
+    </div>
+  `;
+}
+
+// ── RENDER HISTÓRICO ──────────────────────────────────────
+function renderHistorico(lista) {
+  const el = document.getElementById('sec-historico');
+  if (!lista.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="section-title">Minhas entregas (${lista.length})</div>
+    ${lista.reverse().map(p => `
+      <div class="hist-item">
+        <div>
+          <div class="hist-cliente">${p.cliente}</div>
+          <div class="hist-end">${p.endereco}</div>
+        </div>
+        <div class="hist-valor">${p.valor && p.valor !== '—' ? 'R$ ' + p.valor : '✓'}</div>
+      </div>
+    `).join('')}
+  `;
+}
+
+// ── RECUSAR ───────────────────────────────────────────────
+window.recusar = function(pid) {
+  ultimasCorridas.add(pid);
+  document.getElementById('sec-corrida').innerHTML = '';
+};
+
+// ── NOTIFICAÇÃO SONORA ────────────────────────────────────
+function tocarNotificacao() {
+  if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.5);
+  } catch(e) {}
+}
+
+// ── ERRO ──────────────────────────────────────────────────
+function showErro(msg) {
+  const el = document.getElementById('login-erro');
+  el.textContent = msg; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+// ── AUTO LOGIN ────────────────────────────────────────────
+if (motoAtual) {
+  // Re-marcar como online
+  update(ref(db, 'motoboys/' + motoAtual.id), { online: true, status: 'disponivel' });
+  iniciarDashboard();
+} else {
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('screen-dashboard').style.display = 'none';
+}
+</script>
+</body>
+</html>

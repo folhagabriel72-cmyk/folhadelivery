@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoDesk — Restaurante</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --accent: #ff6b2b;
+    --accent2: #ffb347;
+    --text: #f0ede8;
+    --muted: #888;
+    --green: #3ecf8e;
+    --blue: #4da6ff;
+    --red: #ff4d4d;
+    --yellow: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .header-badge {
+    background: var(--accent); color: #fff;
+    padding: 6px 14px; border-radius: 20px;
+    font-size: 12px; font-weight: 500; font-family: 'Syne', sans-serif;
+  }
+
+  /* LAYOUT */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; }
+  .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+  @media(max-width: 780px) { .grid { grid-template-columns: 1fr; } }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+    margin-bottom: 20px; display: flex; align-items: center; gap: 10px;
+  }
+  .card-title .icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  /* FORM */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group textarea, .form-group select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none;
+    transition: border-color .2s;
+  }
+  .form-group input:focus, .form-group textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-group textarea { resize: none; height: 80px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
+    cursor: pointer; border: none; transition: all .2s; font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+  .btn-primary:hover { background: #e55a1e; transform: translateY(-1px); }
+  .btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+  .btn-green { background: rgba(62,207,142,.15); color: var(--green); border: 1px solid rgba(62,207,142,.3); }
+  .btn-green:hover { background: rgba(62,207,142,.25); }
+  .btn-ghost { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); }
+
+  /* PEDIDOS LIST */
+  .pedidos-list { display: flex; flex-direction: column; gap: 12px; }
+  .pedido-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; transition: border-color .2s;
+  }
+  .pedido-card:hover { border-color: #444; }
+  .pedido-card.chamando { border-color: rgba(77,166,255,.4); }
+  .pedido-card.em-rota { border-color: rgba(62,207,142,.4); }
+  .pedido-card.entregue { opacity: .5; }
+
+  .pedido-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+  .pedido-cliente { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 15px; }
+  .pedido-end { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+    white-space: nowrap;
+  }
+  .badge-aguardando { background: rgba(255,209,102,.15); color: var(--yellow); border: 1px solid rgba(255,209,102,.3); }
+  .badge-chamando { background: rgba(77,166,255,.15); color: var(--blue); border: 1px solid rgba(77,166,255,.3); }
+  .badge-em-rota { background: rgba(62,207,142,.15); color: var(--green); border: 1px solid rgba(62,207,142,.3); }
+  .badge-entregue { background: rgba(136,136,136,.15); color: var(--muted); border: 1px solid var(--border); }
+
+  .pedido-items { font-size: 13px; color: var(--muted); margin: 8px 0 12px; line-height: 1.5; }
+  .pedido-moto { font-size: 13px; color: var(--green); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .pedido-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; color: var(--accent); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+  .empty-text { font-size: 14px; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+    background: var(--surface); border: 1px solid var(--green); color: var(--green);
+    padding: 12px 20px; border-radius: 10px; font-size: 13px;
+    transform: translateY(80px); opacity: 0; transition: all .3s;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  /* PULSE DOT */
+  .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; position: relative; }
+  .pulse::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--green); animation: ring 1.5s infinite; }
+  @keyframes ring { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(2)} }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .section-label {
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    margin-bottom: 14px;
+  }
+  .spinner { border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; width: 20px; height: 20px; animation: spin .6s linear infinite; margin: 20px auto; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Moto<span>Desk</span></div>
+  <div class="header-badge">🏪 Restaurante</div>
+</header>
+
+<div class="container">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="stat-ativos">0</div>
+      <div class="stat-label">Ativos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-rota">0</div>
+      <div class="stat-label">Em rota</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="stat-entregues">0</div>
+      <div class="stat-label">Entregues hoje</div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- FORM -->
+    <div>
+      <div class="card">
+        <div class="card-title">
+          <div class="icon">+</div>
+          Novo Pedido
+        </div>
+        <div class="form-group">
+          <label>Nome do cliente</label>
+          <input type="text" id="inp-cliente" placeholder="Ex: João Silva">
+        </div>
+        <div class="form-group">
+          <label>Endereço de entrega</label>
+          <input type="text" id="inp-endereco" placeholder="Rua, número, bairro">
+        </div>
+        <div class="form-group">
+          <label>Itens do pedido</label>
+          <textarea id="inp-itens" placeholder="Ex: 2x Hamburguer, 1x Suco de laranja"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Valor (R$)</label>
+          <input type="text" id="inp-valor" placeholder="Ex: 45,00">
+        </div>
+        <button class="btn btn-primary" onclick="criarPedido()">
+          ＋ Criar pedido
+        </button>
+      </div>
+
+      <div class="card" style="margin-top:16px">
+        <div class="card-title">
+          <div class="icon" style="background:var(--green); font-size:14px">🛵</div>
+          Motoboys online
+        </div>
+        <div id="lista-motoboys-online"><div class="spinner"></div></div>
+      </div>
+    </div>
+
+    <!-- PEDIDOS -->
+    <div>
+      <div class="section-label">Pedidos em aberto</div>
+      <div class="pedidos-list" id="lista-pedidos"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, update, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import firebaseConfig from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── CRIAR PEDIDO ──────────────────────────────────────────
+window.criarPedido = function() {
+  const cliente  = document.getElementById('inp-cliente').value.trim();
+  const endereco = document.getElementById('inp-endereco').value.trim();
+  const itens    = document.getElementById('inp-itens').value.trim();
+  const valor    = document.getElementById('inp-valor').value.trim();
+  if (!cliente || !endereco || !itens) { toast('Preencha todos os campos obrigatórios', true); return; }
+
+  push(ref(db, 'pedidos'), {
+    cliente, endereco, itens, valor: valor || '—',
+    status: 'aguardando',
+    criadoEm: serverTimestamp(),
+    motoId: null, motoNome: null
+  });
+
+  ['inp-cliente','inp-endereco','inp-itens','inp-valor'].forEach(id => document.getElementById(id).value = '');
+  toast('Pedido criado com sucesso!');
+};
+
+// ── CHAMAR MOTOBOYS ───────────────────────────────────────
+window.chamarMotoboys = function(pid) {
+  update(ref(db, 'pedidos/' + pid), { status: 'chamando' });
+  toast('Motoboys sendo notificados...');
+};
+
+// ── CANCELAR ──────────────────────────────────────────────
+window.cancelarPedido = function(pid) {
+  if (!confirm('Cancelar este pedido?')) return;
+  update(ref(db, 'pedidos/' + pid), { status: 'cancelado' });
+};
+
+// ── LISTENER PEDIDOS ─────────────────────────────────────
+onValue(ref(db, 'pedidos'), snap => {
+  const data = snap.val() || {};
+  const todos = Object.entries(data).map(([id, v]) => ({ id, ...v }))
+    .sort((a, b) => (b.criadoEm || 0) - (a.criadoEm || 0));
+
+  const ativos    = todos.filter(p => !['entregue','cancelado'].includes(p.status));
+  const emRota    = todos.filter(p => p.status === 'em-rota');
+  const entregues = todos.filter(p => p.status === 'entregue');
+
+  document.getElementById('stat-ativos').textContent    = ativos.length;
+  document.getElementById('stat-rota').textContent      = emRota.length;
+  document.getElementById('stat-entregues').textContent = entregues.length;
+
+  renderPedidos(ativos);
+});
+
+function renderPedidos(lista) {
+  const el = document.getElementById('lista-pedidos');
+  if (!lista.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🍔</div><div class="empty-text">Nenhum pedido em aberto</div></div>`;
+    return;
+  }
+  el.innerHTML = lista.map(p => {
+    const badgeMap = {
+      aguardando: 'badge-aguardando', chamando: 'badge-chamando',
+      'em-rota': 'badge-em-rota', entregue: 'badge-entregue'
+    };
+    const labelMap = {
+      aguardando: '● Aguardando', chamando: '● Chamando motoboy',
+      'em-rota': '● Em rota', entregue: '✓ Entregue'
+    };
+    return `
+    <div class="pedido-card ${p.status}">
+      <div class="pedido-top">
+        <div>
+          <div class="pedido-cliente">${p.cliente}</div>
+          <div class="pedido-end">📍 ${p.endereco}</div>
+        </div>
+        <span class="badge ${badgeMap[p.status] || ''}">${labelMap[p.status] || p.status}</span>
+      </div>
+      <div class="pedido-items">${p.itens}${p.valor && p.valor !== '—' ? ` · <strong style="color:var(--accent)">R$ ${p.valor}</strong>` : ''}</div>
+      ${p.motoNome ? `<div class="pedido-moto"><span class="pulse"></span> ${p.motoNome}</div>` : ''}
+      <div class="pedido-actions">
+        ${p.status === 'aguardando' ? `<button class="btn btn-sm btn-green" onclick="chamarMotoboys('${p.id}')">🛵 Chamar motoboys</button>` : ''}
+        ${p.status === 'chamando'   ? `<button class="btn btn-sm btn-ghost" disabled>Aguardando aceite...</button>` : ''}
+        ${p.status === 'em-rota'    ? `<button class="btn btn-sm btn-ghost" disabled>Em rota 🚀</button>` : ''}
+        ${!['entregue'].includes(p.status) ? `<button class="btn btn-sm btn-ghost" onclick="cancelarPedido('${p.id}')">Cancelar</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── LISTENER MOTOBOYS ─────────────────────────────────────
+onValue(ref(db, 'motoboys'), snap => {
+  const data = snap.val() || {};
+  const online = Object.entries(data)
+    .map(([id, v]) => ({ id, ...v }))
+    .filter(m => m.online);
+
+  const el = document.getElementById('lista-motoboys-online');
+  if (!online.length) {
+    el.innerHTML = `<div style="font-size:13px;color:var(--muted);text-align:center;padding:12px">Nenhum motoboy online</div>`;
+    return;
+  }
+  el.innerHTML = online.map(m => {
+    const ini = m.nome.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase();
+    const cor  = m.status === 'ocupado' ? 'var(--yellow)' : 'var(--green)';
+    const txt  = m.status === 'ocupado' ? 'Em entrega' : 'Disponível';
+    return `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,107,43,.15);color:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;flex-shrink:0">${ini}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500">${m.nome}</div>
+        <div style="font-size:12px;color:var(--muted)">${m.tel || ''}</div>
+      </div>
+      <div style="font-size:11px;color:${cor};font-weight:500">${txt}</div>
+    </div>`;
+  }).join('');
+});
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg, err) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.borderColor = err ? 'var(--red)' : 'var(--green)';
+  el.style.color = err ? 'var(--red)' : 'var(--green)';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+window.toast = toast;
+</script>
+</body>
+</html>
