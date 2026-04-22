@@ -408,14 +408,16 @@ function renderDashboard() {
   document.getElementById('d-entregues').textContent=ent.length;
   document.getElementById('d-fat').textContent='R$'+(ent.length*LUCRO_GG).toFixed(2).replace('.',',');
 
-  const online=motoboys.filter(m=>m.online);
+  const online=motoboys.filter(m=>m.online && m.status!=='offline');
   const mEl=document.getElementById('dash-motoboys');
   mEl.innerHTML=online.length?online.map(m=>{
     const ini=m.nome.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
-    const cor=m.status==='ocupado'?'var(--yellow)':'var(--accent)';
-    const txt=m.status==='ocupado'?'Em entrega':'Disponível';
+    const cor=m.status==='ocupado'?'var(--yellow)':m.status==='pausa'?'var(--text3)':'var(--accent)';
+    const txt=m.status==='ocupado'?'Em entrega':m.status==='pausa'?'Inativo':'Disponível';
+    const avBg=m.status==='pausa'?'rgba(255,255,255,.04)':'var(--accent-dim)';
+    const avCl=m.status==='pausa'?'var(--text3)':'var(--accent)';
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
-      <div style="width:32px;height:32px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">${ini}</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:${avBg};color:${avCl};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0">${ini}</div>
       <div style="flex:1"><div style="font-size:13px;font-weight:600">${m.nome}</div><div style="font-size:11px;color:var(--text2)">${m.tel||''}</div></div>
       <span style="font-size:11px;font-weight:600;color:${cor}">${txt}</span>
     </div>`;
@@ -488,10 +490,10 @@ function renderMotoboys(){
   el.innerHTML=motoboys.sort((a,b)=>(b.online?1:0)-(a.online?1:0)).map(m=>{
     const ini=m.nome.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
     const on=m.online;
-    const txt=!on?'Offline':m.status==='ocupado'?'Em entrega':'Disponível';
-    const dotCls=!on?'dot-gray':m.status==='ocupado'?'dot-yellow':'dot-green';
-    const avBg=on?'var(--accent-dim)':'rgba(255,255,255,.04)';
-    const avCl=on?'var(--accent)':'var(--text3)';
+    const txt=!on?'Offline':m.status==='ocupado'?'Em entrega':m.status==='pausa'?'Inativo':'Disponível';
+    const dotCls=!on?'dot-gray':m.status==='ocupado'?'dot-yellow':m.status==='pausa'?'dot-gray':'dot-green';
+    const avBg=on && m.status!=='pausa'?'var(--accent-dim)':'rgba(255,255,255,.04)';
+    const avCl=on && m.status!=='pausa'?'var(--accent)':'var(--text3)';
     return `<div class="moto-card">
       <div class="avatar" style="background:${avBg};color:${avCl}">${ini}</div>
       <div style="font-size:13px;font-weight:600;margin-bottom:2px">${m.nome}</div>
