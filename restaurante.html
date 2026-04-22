@@ -9,7 +9,7 @@
 :root{
   --bg:#060608;--s1:#0e0e12;--s2:#16161c;
   --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
-  --accent:#ff6b35;--accent2:#e5571e;--accent-dim:rgba(255,107,53,.12);x
+  --accent:#ff6b35;--accent2:#e5571e;--accent-dim:rgba(255,107,53,.12);
   --green:#00d4a0;--green-dim:rgba(0,212,160,.12);
   --blue:#4d9fff;--blue-dim:rgba(77,159,255,.12);
   --yellow:#ffd166;--yellow-dim:rgba(255,209,102,.12);
@@ -135,6 +135,7 @@ tr:last-child td{border-bottom:none}
           <div class="form-group"><label>Nome do cliente</label><input type="text" id="inp-cliente" placeholder="Ex: João Silva"></div>
           <div class="form-group"><label>Endereço de entrega</label><input type="text" id="inp-end" placeholder="Rua, número, bairro"></div>
           <div class="form-group"><label>Itens do pedido</label><textarea id="inp-itens" placeholder="Ex: 2x Hamburguer, 1x Suco"></textarea></div>
+          <div class="form-group"><label>Observação para o motoboy</label><textarea id="inp-obs" placeholder="Ex: tocar interfone, retirar no caixa, cuidado com bebida"></textarea></div>
           <button class="btn btn-primary" onclick="criarPedido()">+ Criar pedido</button>
         </div>
         <div>
@@ -266,6 +267,7 @@ function renderPedidos(){
         <span class="badge ${bm[p.status]||'b-gray'}">${lm[p.status]||p.status}</span>
       </div>
       <div class="p-itens">${p.itens}</div>
+      ${p.obsMoto?`<div class="p-itens" style="color:var(--yellow)">Obs motoboy: ${p.obsMoto}</div>`:''}
       ${p.motoNome?`<div class="p-moto"><span class="pulse"></span>${p.motoNome}</div>`:''}
       <div class="p-actions">
         ${p.status==='aguardando'?`<button class="btn btn-green btn-sm" onclick="chamarMotoboys('${p.id}')">🛵 Chamar motoboys</button>`:''}
@@ -347,9 +349,10 @@ window.criarPedido=function(){
   const cliente=document.getElementById('inp-cliente').value.trim();
   const end=document.getElementById('inp-end').value.trim();
   const itens=document.getElementById('inp-itens').value.trim();
+  const obsMoto=document.getElementById('inp-obs').value.trim();
   if(!cliente||!end||!itens){toast('Preencha todos os campos','err');return;}
   push(ref(db,'pedidos'),{
-    cliente,endereco:end,itens,
+    cliente,endereco:end,itens,obsMoto,
     restId:restAtual.id,restNome:restAtual.nome,restEndereco:restAtual.endereco,
     taxaEntrega:REPASSE_EMPRESA,
     taxaMotoboy:REPASSE_MOTOBOY,
@@ -359,7 +362,7 @@ window.criarPedido=function(){
     motoPago:false,
     status:'aguardando',criadoEm:Date.now(),motoId:null,motoNome:null
   });
-  ['inp-cliente','inp-end','inp-itens'].forEach(id=>document.getElementById(id).value='');
+  ['inp-cliente','inp-end','inp-itens','inp-obs'].forEach(id=>document.getElementById(id).value='');
   toast('Pedido criado!');
 };
 
