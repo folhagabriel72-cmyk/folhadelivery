@@ -267,7 +267,7 @@ function renderPedidos(){
         <span class="badge ${bm[p.status]||'b-gray'}">${lm[p.status]||p.status}</span>
       </div>
       <div class="p-itens">${p.itens}</div>
-      ${p.obsMoto?`<div class="p-itens" style="color:var(--yellow)">Obs motoboy: ${p.obsMoto}</div>`:''}
+      
       ${p.motoNome?`<div class="p-moto"><span class="pulse"></span>${p.motoNome}</div>`:''}
       <div class="p-actions">
         ${p.status==='aguardando'?`<button class="btn btn-green btn-sm" onclick="chamarMotoboys('${p.id}')">🛵 Chamar motoboys</button>`:''}
@@ -349,10 +349,10 @@ window.criarPedido=function(){
   const cliente=document.getElementById('inp-cliente').value.trim();
   const end=document.getElementById('inp-end').value.trim();
   const itens=document.getElementById('inp-itens').value.trim();
-  const obsMoto=document.getElementById('inp-obs').value.trim();
+  const observacao=document.getElementById('inp-obs').value.trim();
   if(!cliente||!end||!itens){toast('Preencha todos os campos','err');return;}
   push(ref(db,'pedidos'),{
-    cliente,endereco:end,itens,obsMoto,
+    cliente,endereco:end,itens,observacao,
     restId:restAtual.id,restNome:restAtual.nome,restEndereco:restAtual.endereco,
     taxaEntrega:REPASSE_EMPRESA,
     taxaMotoboy:REPASSE_MOTOBOY,
