@@ -336,10 +336,10 @@ function renderPrincipal(disponiveis, emColeta, emEntrega) {
       <div class="fase-card fase-coleta">
         ${stepBar(1)}
         <div class="c-title">${emColeta.restNome}</div>
-        <div class="info-row"><span class="info-ico">📍</span><div class="info-content"><strong>Endereço do restaurante</strong>${emColeta.restEndereco||'—'}</div></div>
+        <div class="info-row"><span class="info-ico">📍</span><div class="info-content"><strong>Endereço da empresa</strong>${emColeta.restEndereco||'—'}</div></div>
         <div class="info-row"><span class="info-ico">📦</span><div class="info-content">${emColeta.itens}</div></div>
         <div class="info-row"><span class="info-ico">👤</span><div class="info-content">Pedido de: <strong>${emColeta.cliente}</strong></div></div>
-        <a href="${mapsUrl}" target="_blank" class="maps-link">🗺 Navegar até o restaurante · ver tempo e distância</a>
+        <a href="${mapsUrl}" target="_blank" class="maps-link">🗺 Navegar até a empresa · ver tempo e distância</a>
         <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:10px">O Google Maps mostrará distância e tempo com trânsito</div>
         <button class="btn btn-orange" onclick="confirmarColeta('${emColeta.id}')">✓ Peguei o pedido</button>
       </div>`;
@@ -377,11 +377,11 @@ function renderPrincipal(disponiveis, emColeta, emEntrega) {
     <div class="corrida-banner">
       <div class="ctag ctag-green">Nova entrega!</div>
       ${stepBar(0)}
-      <div class="info-row"><span class="info-ico">🏪</span><div class="info-content"><strong>${p.restNome||'Restaurante'}</strong>${p.restEndereco||''}</div></div>
+      <div class="info-row"><span class="info-ico">🏪</span><div class="info-content"><strong>${p.restNome||'Empresa'}</strong>${p.restEndereco||''}</div></div>
       <div class="info-row"><span class="info-ico">📦</span><div class="info-content">${p.itens}</div></div>
       <div class="info-row" style="margin-bottom:0"><span class="info-ico">📍</span><div class="info-content" style="color:var(--text3);font-style:italic">Endereço do cliente liberado após coleta</div></div>
-      <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.restEndereco||p.restNome||'restaurante')}&travelmode=driving" target="_blank" class="maps-link" style="margin:12px 0 8px">
-        🗺 Ver rota até o restaurante
+      <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.restEndereco||p.restNome||'empresa')}&travelmode=driving" target="_blank" class="maps-link" style="margin:12px 0 8px">
+        🗺 Ver rota até a empresa
       </a>
       <div class="actions-row">
         <button class="btn btn-accent" onclick="aceitarEntrega('${p.id}')">✓ Aceitar entrega</button>
@@ -467,7 +467,7 @@ window.renderRelatorio = function() {
     return;
   }
 
-  // Agrupa por restaurante
+  // Agrupa por empresa
   const porRest={};
   hist.forEach(p=>{
     const k=p.restId||'?';
@@ -490,7 +490,7 @@ window.renderRelatorio = function() {
         </div>
       </div>
     </div>
-    <div class="sec-title">Por restaurante</div>
+    <div class="sec-title">Por empresa</div>
     <div class="rel-box">
       ${Object.values(porRest).map(r=>`
         <div class="rel-row">
