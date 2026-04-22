@@ -145,9 +145,9 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
       </button>
-      <button class="nav-item" onclick="showPanel('restaurantes',this)">
+      <button class="nav-item" onclick="showPanel('Empresas',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
-        Restaurantes
+        Empresas
       </button>
       <button class="nav-item" onclick="showPanel('motoboys',this)">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -197,17 +197,17 @@ tr:hover td{background:rgba(255,255,255,.015)}
       </div>
     </div>
 
-    <!-- RESTAURANTES -->
-    <div id="panel-restaurantes" class="panel">
+    <!-- Empresas -->
+    <div id="panel-Empresas" class="panel">
       <div class="section-head">
-        <div class="section-title">Restaurantes cadastrados</div>
-        <button class="btn btn-primary btn-sm" onclick="abrirModal('modal-rest')">+ Novo restaurante</button>
+        <div class="section-title">Empresas cadastrados</div>
+        <button class="btn btn-primary btn-sm" onclick="abrirModal('modal-rest')">+ Nova Empresa</button>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
             <thead><tr><th>Nome</th><th>Usuário</th><th>Endereço</th><th>Telefone</th><th>Taxa padrão</th><th></th></tr></thead>
-            <tbody id="tabela-restaurantes"></tbody>
+            <tbody id="tabela-Empresas"></tbody>
           </table>
         </div>
       </div>
@@ -238,7 +238,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Cliente</th><th>Restaurante</th><th>Motoboy</th><th>Taxa</th><th>Horário</th><th>Status</th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Empresa</th><th>Motoboy</th><th>Taxa</th><th>Horário</th><th>Status</th></tr></thead>
             <tbody id="tabela-pedidos"></tbody>
           </table>
         </div>
@@ -251,7 +251,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <div class="section-title">Controle financeiro semanal</div>
         <button class="btn btn-ghost btn-sm" onclick="renderFinanceiro()">↻ Atualizar</button>
       </div>
-      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Período: sábado → sexta. Relatório enviado toda sexta. Restaurantes pagam até segunda-feira.</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Período: sábado → sexta. Relatório enviado toda sexta. Empresas pagam até segunda-feira.</div>
       <div id="semanas-lista"></div>
     </div>
 
@@ -265,7 +265,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end">
           <div class="form-group" style="margin:0"><label>Data inicial</label><input type="date" id="rel-data-ini"></div>
           <div class="form-group" style="margin:0"><label>Data final</label><input type="date" id="rel-data-fim"></div>
-          <div class="form-group" style="margin:0"><label>Restaurante</label>
+          <div class="form-group" style="margin:0"><label>Empresa</label>
             <select id="rel-rest-filtro"><option value="">Todos</option></select>
           </div>
           <button class="btn btn-primary" onclick="gerarRelatorio()">Gerar</button>
@@ -280,14 +280,14 @@ tr:hover td{background:rgba(255,255,255,.015)}
       <div class="stats-grid" id="rel-stats" style="margin-bottom:18px"></div>
       <div id="rel-boleto-box" style="display:none;margin-bottom:18px"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
-        <div class="card"><div class="section-title" style="margin-bottom:14px">Por restaurante</div><div id="rel-por-rest"></div></div>
+        <div class="card"><div class="section-title" style="margin-bottom:14px">Por Empresa</div><div id="rel-por-rest"></div></div>
         <div class="card"><div class="section-title" style="margin-bottom:14px">Por motoboy</div><div id="rel-motoboys"></div></div>
       </div>
       <div class="card">
         <div class="section-title" style="margin-bottom:14px">Detalhamento</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Restaurante</th><th>Motoboy</th><th>Taxa total</th><th>GG Express</th></tr></thead>
+            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Empresa</th><th>Motoboy</th><th>Taxa total</th><th>GG Express</th></tr></thead>
             <tbody id="rel-tabela"></tbody>
           </table>
         </div>
@@ -296,12 +296,12 @@ tr:hover td{background:rgba(255,255,255,.015)}
   </main>
 </div>
 
-<!-- MODAL RESTAURANTE -->
+<!-- MODAL Empresa -->
 <div class="modal-bg" id="modal-rest">
   <div class="modal">
-    <div class="modal-title">Novo restaurante <button class="modal-close" onclick="fecharModal('modal-rest')">✕</button></div>
+    <div class="modal-title">Nova Empresa <button class="modal-close" onclick="fecharModal('modal-rest')">✕</button></div>
     <div class="form-grid">
-      <div class="form-group full"><label>Nome do restaurante</label><input type="text" id="rest-nome" placeholder="Ex: Burger House"></div>
+      <div class="form-group full"><label>Nome do Empresa</label><input type="text" id="rest-nome" placeholder="Ex: Burger House"></div>
       <div class="form-group"><label>Usuário de acesso</label><input type="text" id="rest-usuario" placeholder="Ex: burguer"></div>
       <div class="form-group"><label>Senha de acesso</label><input type="text" id="rest-senha" placeholder="Defina uma senha"></div>
       <div class="form-group full"><label>Endereço completo</label><input type="text" id="rest-end" placeholder="Rua, número, bairro"></div>
@@ -310,7 +310,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
     </div>
     <div style="margin-top:18px;display:flex;gap:9px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="fecharModal('modal-rest')">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarRestaurante()">Cadastrar</button>
+      <button class="btn btn-primary" onclick="salvarEmpresa()">Cadastrar</button>
     </div>
   </div>
 </div>
@@ -344,7 +344,7 @@ const ADMIN_SENHA = "ggexpress2024";
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
-let pedidos=[], motoboys=[], restaurantes=[];
+let pedidos=[], motoboys=[], Empresas=[];
 let filtroAtivo='todos';
 
 window.doLogin = function() {
@@ -368,7 +368,7 @@ window.showPanel = function(p,el) {
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   document.getElementById('panel-'+p).classList.add('active');
   el.classList.add('active');
-  const t={dashboard:'Dashboard',restaurantes:'Restaurantes',motoboys:'Motoboys',pedidos:'Pedidos',financeiro:'Financeiro',relatorio:'Relatório'};
+  const t={dashboard:'Dashboard',Empresas:'Empresas',motoboys:'Motoboys',pedidos:'Pedidos',financeiro:'Financeiro',relatorio:'Relatório'};
   document.getElementById('page-title').textContent=t[p]||p;
   if(p==='relatorio') gerarRelatorio();
   if(p==='financeiro') renderFinanceiro();
@@ -385,10 +385,10 @@ function iniciar() {
     motoboys=Object.entries(d).map(([id,v])=>({id,...v}));
     renderDashboard(); renderMotoboys();
   });
-  onValue(ref(db,'restaurantes'),snap=>{
+  onValue(ref(db,'Empresas'),snap=>{
     const d=snap.val()||{};
-    restaurantes=Object.entries(d).map(([id,v])=>({id,...v}));
-    renderRestaurantes();
+    Empresas=Object.entries(d).map(([id,v])=>({id,...v}));
+    renderEmpresas();
   });
 }
 
@@ -427,11 +427,11 @@ function renderDashboard() {
     </div>`).join(''):'<div class="empty"><div>Sem entregas</div></div>';
 }
 
-// ── RESTAURANTES ──────────────────────────────────────────
+// ── Empresas ──────────────────────────────────────────
 window.abrirModal=function(id){document.getElementById(id).classList.add('open')};
 window.fecharModal=function(id){document.getElementById(id).classList.remove('open')};
 
-window.salvarRestaurante=function(){
+window.salvarEmpresa=function(){
   const nome=document.getElementById('rest-nome').value.trim();
   const usuario=document.getElementById('rest-usuario').value.trim();
   const senha=document.getElementById('rest-senha').value.trim();
@@ -441,24 +441,24 @@ window.salvarRestaurante=function(){
   if(!nome||!usuario||!senha||!end){toast('Preencha todos os campos obrigatórios','err');return;}
   if(taxa<9){toast('Taxa mínima é R$9,00','err');return;}
   // Verifica usuário duplicado
-  if(restaurantes.some(r=>r.usuario===usuario)){toast('Usuário já existe','err');return;}
-  push(ref(db,'restaurantes'),{nome,usuario,senha,endereco:end,tel,taxa,ativo:true,criadoEm:Date.now()});
+  if(Empresas.some(r=>r.usuario===usuario)){toast('Usuário já existe','err');return;}
+  push(ref(db,'Empresas'),{nome,usuario,senha,endereco:end,tel,taxa,ativo:true,criadoEm:Date.now()});
   fecharModal('modal-rest');
   ['rest-nome','rest-usuario','rest-senha','rest-end','rest-tel','rest-taxa'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('rest-taxa').value='9';
-  toast('Restaurante cadastrado!');
+  toast('Empresa cadastrado!');
 };
 
-function renderRestaurantes(){
-  const tb=document.getElementById('tabela-restaurantes');
-  if(!restaurantes.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">Nenhum restaurante cadastrado</td></tr>';return;}
-  tb.innerHTML=restaurantes.map(r=>`<tr>
+function renderEmpresas(){
+  const tb=document.getElementById('tabela-Empresas');
+  if(!Empresas.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">Nenhum Empresa cadastrado</td></tr>';return;}
+  tb.innerHTML=Empresas.map(r=>`<tr>
     <td class="name">${r.nome}</td>
     <td><code style="background:var(--s2);padding:2px 6px;border-radius:5px;font-size:12px">${r.usuario}</code></td>
     <td>${r.endereco}</td>
     <td>${r.tel||'—'}</td>
     <td style="color:var(--accent);font-weight:600">R$${Number(r.taxa||9).toFixed(2).replace('.',',')}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="remover('restaurantes','${r.id}')">Remover</button></td>
+    <td><button class="btn btn-danger btn-sm" onclick="remover('Empresas','${r.id}')">Remover</button></td>
   </tr>`).join('');
 }
 
@@ -567,7 +567,7 @@ window.renderFinanceiro=function(){
     const iniStr=s.ini.toLocaleDateString('pt-BR');
     const fimStr=s.fim.toLocaleDateString('pt-BR');
 
-    // Por restaurante
+    // Por Empresa
     const porRest={};
     pSem.forEach(p=>{
       const k=p.restId||'?';
@@ -601,7 +601,7 @@ window.renderFinanceiro=function(){
         </div>
       </div>
       ${Object.entries(porRest).map(([rid,r])=>{
-        const restObj=restaurantes.find(x=>x.id===rid);
+        const restObj=Empresas.find(x=>x.id===rid);
         const pagRestKey=`pagRest_${semId}_${rid}`;
         return `<div style="background:var(--s1);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:8px">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
@@ -638,13 +638,13 @@ window.renderFinanceiro=function(){
 };
 
 window.marcarRestPago=function(semId,rid,badgeId){
-  // Atualiza todos os pedidos da semana desse restaurante
+  // Atualiza todos os pedidos da semana desse Empresa
   const [,iniDate]=semId.split('sem_');
   const ini=new Date(iniDate+'T00:00:00').getTime();
   const fim=ini+7*24*60*60*1000;
   pedidos.filter(p=>p.restId===rid&&(p.criadoEm||0)>=ini&&(p.criadoEm||0)<fim&&p.status==='entregue')
     .forEach(p=>update(ref(db,'pedidos/'+p.id),{restPago:true}));
-  toast('Pagamento do restaurante registrado!');
+  toast('Pagamento do Empresa registrado!');
 };
 
 window.marcarMotoPago=function(semId,mid,badgeId){
@@ -675,7 +675,7 @@ window.gerarRelatorio=function(){
   const fimStr=document.getElementById('rel-data-fim')?.value;
   const restFiltro=document.getElementById('rel-rest-filtro')?.value;
   const sel=document.getElementById('rel-rest-filtro');
-  if(sel){sel.innerHTML='<option value="">Todos os restaurantes</option>'+restaurantes.map(r=>`<option value="${r.id}"${r.id===restFiltro?' selected':''}>${r.nome}</option>`).join('');}
+  if(sel){sel.innerHTML='<option value="">Todos os Empresas</option>'+Empresas.map(r=>`<option value="${r.id}"${r.id===restFiltro?' selected':''}>${r.nome}</option>`).join('');}
 
   let lista=pedidos.filter(p=>p.status==='entregue');
   if(iniStr)lista=lista.filter(p=>(p.criadoEm||0)>=new Date(iniStr+'T00:00:00').getTime());
@@ -694,13 +694,13 @@ window.gerarRelatorio=function(){
 
   const boletoBox=document.getElementById('rel-boleto-box');
   if(restFiltro&&lista.length){
-    const rest=restaurantes.find(r=>r.id===restFiltro);
+    const rest=Empresas.find(r=>r.id===restFiltro);
     const periodo=iniStr&&fimStr?`${iniStr.split('-').reverse().join('/')} a ${fimStr.split('-').reverse().join('/')}`:'período';
     boletoBox.style.display='block';
     boletoBox.innerHTML=`<div class="card" style="border-color:rgba(0,212,160,.3)">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
-          <div style="font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Cobrança — ${rest?.nome||'Restaurante'}</div>
+          <div style="font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Cobrança — ${rest?.nome||'Empresa'}</div>
           <div style="font-size:13px;color:var(--text2)">Período: ${periodo}</div>
           <div style="font-size:13px;color:var(--text2)">${lista.length} entregas × R$2,50</div>
         </div>
