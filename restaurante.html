@@ -85,6 +85,8 @@ tr:last-child td{border-bottom:none}
 .report-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border)}
 .report-row:last-child{border-bottom:none}
 .r-key{font-size:13px;color:var(--text2)}.r-val{font-size:13px;font-weight:700;color:var(--text)}
+.pix-box{background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:12px}
+.pix-key{font-size:14px;font-weight:700;color:var(--text);word-break:break-all;margin:6px 0 10px}
 #toast{position:fixed;bottom:22px;right:22px;z-index:999;background:var(--s1);border:1px solid var(--green);color:var(--green);padding:10px 17px;border-radius:10px;font-size:13px;font-weight:500;transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none}
 #toast.show{transform:translateY(0);opacity:1}
 #toast.err{border-color:var(--red);color:var(--red)}
@@ -154,7 +156,7 @@ tr:last-child td{border-bottom:none}
         <div class="card-title"><div class="ico" style="background:var(--green)">✓</div>Entregues hoje</div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Horário</th><th>Cliente</th><th>Endereço</th><th>Motoboy</th><th>Taxa cobrada</th></tr></thead>
+            <thead><tr><th>Horário</th><th>Cliente</th><th>Endereço</th><th>Motoboy</th></tr></thead>
             <tbody id="tab-entregues-body"></tbody>
           </table>
         </div>
@@ -189,7 +191,7 @@ tr:last-child td{border-bottom:none}
         <div class="card-title"><div class="ico">📋</div>Detalhamento</div>
         <div style="overflow-x:auto">
           <table>
-            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Endereço</th><th>Motoboy</th><th>Taxa cobrada</th></tr></thead>
+            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Endereço</th><th>Motoboy</th></tr></thead>
             <tbody id="rel-detalhe-body"></tbody>
           </table>
         </div>
@@ -208,6 +210,11 @@ import firebaseConfig from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
+
+const REPASSE_EMPRESA = 9.5;
+const REPASSE_MOTOBOY = 7.5;
+const LUCRO_GG = 2.0;
+const PIX_GG = 'cobrancaggexpress@gmail.com';
 
 let restAtual=null, pedidos=[];
 
@@ -280,12 +287,11 @@ function renderEntregues(){
   const hoje=new Date();hoje.setHours(0,0,0,0);
   const ent=pedidos.filter(p=>p.status==='entregue'&&(p.criadoEm||0)>=hoje.getTime());
   const tb=document.getElementById('tab-entregues-body');
-  if(!ent.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:28px">Nenhuma entrega hoje</td></tr>';return;}
+  if(!ent.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:28px">Nenhuma entrega hoje</td></tr>';return;}
   tb.innerHTML=ent.map(p=>{
     const dt=new Date(p.criadoEm);
     const hora=dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    return `<tr><td>${hora}</td><td class="name">${p.cliente}</td><td>${p.endereco}</td><td>${p.motoNome||'—'}</td>
-      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9).toFixed(2).replace('.',',')}</td></tr>`;
+    return `<tr><td>${hora}</td><td class="name">${p.cliente}</td><td>${p.endereco}</td><td>${p.motoNome||'—'}</td></tr>`;
   }).join('');
 }
 
@@ -306,21 +312,30 @@ window.renderRelatorio=function(){
   let lista=[...pedidos].filter(p=>p.status==='entregue');
   if(iniStr)lista=lista.filter(p=>(p.criadoEm||0)>=new Date(iniStr+'T00:00:00').getTime());
   if(fimStr)lista=lista.filter(p=>(p.criadoEm||0)<=new Date(fimStr+'T23:59:59').getTime());
-  const totalTaxas=lista.reduce((s,p)=>s+Number(p.taxaEntrega||9),0);
-  const ggParte=lista.length*2.5;
+
+  const totalGG = lista.length * REPASSE_EMPRESA;
   const periodo=iniStr&&fimStr?`${iniStr.split('-').reverse().join('/')} a ${fimStr.split('-').reverse().join('/')}`:'todo o período';
+  const pagamentoConfirmado = lista.length>0 && lista.every(p=>p.restPago===true);
+
   document.getElementById('rel-resumo').innerHTML=`
     <div class="report-box">
       <div class="report-row"><span class="r-key">Período</span><span class="r-val" style="font-size:12px">${periodo}</span></div>
       <div class="report-row"><span class="r-key">Total de entregas</span><span class="r-val">${lista.length}</span></div>
-      <div class="report-row"><span class="r-key">Total pago em taxas</span><span class="r-val" style="color:var(--accent)">R$${totalTaxas.toFixed(2).replace('.',',')}</span></div>
-      <div class="report-row"><span class="r-key">A pagar — GG Express</span><span class="r-val" style="color:var(--red)">R$${ggParte.toFixed(2).replace('.',',')}</span></div>
+      <div class="report-row"><span class="r-key">Cobrança por entrega</span><span class="r-val">R$${REPASSE_EMPRESA.toFixed(2).replace('.',',')}</span></div>
+      <div class="report-row"><span class="r-key">Status do pagamento</span><span class="r-val" style="color:${pagamentoConfirmado?'var(--green)':'var(--red)'}">${pagamentoConfirmado?'Pagamento confirmado':'Pendente de pagamento'}</span></div>
+      <div class="report-row"><span class="r-key">Total a pagar — GG Express</span><span class="r-val" style="color:var(--red)">R$${totalGG.toFixed(2).replace('.',',')}</span></div>
     </div>
     ${lista.length?`<div style="background:var(--red-dim);border:1px solid rgba(255,77,109,.3);border-radius:9px;padding:11px 14px;margin-top:10px">
-      <div style="font-size:11px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Boleto GG Express</div>
-      <div style="font-size:24px;font-weight:800;color:var(--red)">R$${ggParte.toFixed(2).replace('.',',')}</div>
-      <div style="font-size:12px;color:var(--text2);margin-top:2px">${lista.length} entregas × R$2,50</div>
+      <div style="font-size:11px;color:var(--red);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Cobrança automática GG Express</div>
+      <div style="font-size:24px;font-weight:800;color:var(--red)">R$${totalGG.toFixed(2).replace('.',',')}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:2px">${lista.length} entregas × R$9,50</div>
+      <div class="pix-box">
+        <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px">PIX chave e-mail</div>
+        <div class="pix-key">${PIX_GG}</div>
+        <button class="btn btn-green btn-sm" onclick="copiarPix()">Copiar chave PIX</button>
+      </div>
     </div>`:''}`;
+
   const motos={};
   lista.forEach(p=>{if(p.motoId){if(!motos[p.motoId])motos[p.motoId]={nome:p.motoNome||'?',qtd:0};motos[p.motoId].qtd++;}});
   const lm=Object.values(motos);
@@ -328,12 +343,11 @@ window.renderRelatorio=function(){
     ?`<div class="report-box">${lm.map(m=>`<div class="report-row"><span class="r-key">${m.nome}</span><span class="r-val">${m.qtd} entrega${m.qtd>1?'s':''}</span></div>`).join('')}</div>`
     :'<div class="empty"><div class="empty-ico">🛵</div><div>Sem dados</div></div>';
   const tb=document.getElementById('rel-detalhe-body');
-  if(!lista.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:26px">Nenhuma entrega no período</td></tr>';return;}
+  if(!lista.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:26px">Nenhuma entrega no período</td></tr>';return;}
   tb.innerHTML=lista.map(p=>{
     const dt=new Date(p.criadoEm);
     const dtFmt=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-    return `<tr><td>${dtFmt}</td><td class="name">${p.cliente}</td><td>${p.endereco}</td><td>${p.motoNome||'—'}</td>
-      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9).toFixed(2).replace('.',',')}</td></tr>`;
+    return `<tr><td>${dtFmt}</td><td class="name">${p.cliente}</td><td>${p.endereco}</td><td>${p.motoNome||'—'}</td></tr>`;
   }).join('');
 };
 
@@ -347,7 +361,7 @@ window.criarPedido=function(){
   push(ref(db,'pedidos'),{
     cliente,endereco:end,itens,
     restId:restAtual.id,restNome:restAtual.nome,restEndereco:restAtual.endereco,
-    taxaEntrega:taxaVal,taxaMotoboy:taxaVal-2.5,
+    taxaEntrega:taxaVal,taxaMotoboy:REPASSE_MOTOBOY,ggValor:LUCRO_GG,repasseEmpresa:REPASSE_EMPRESA,restPago:false,motoPago:false,
     status:'aguardando',criadoEm:Date.now(),motoId:null,motoNome:null
   });
   ['inp-cliente','inp-end','inp-itens'].forEach(id=>document.getElementById(id).value='');
@@ -356,6 +370,10 @@ window.criarPedido=function(){
 };
 
 window.chamarMotoboys=function(pid){update(ref(db,'pedidos/'+pid),{status:'chamando'});toast('Motoboys notificados!');};
+window.copiarPix=function(){
+  navigator.clipboard.writeText(PIX_GG).then(()=>toast('Chave PIX copiada!')).catch(()=>toast('Não foi possível copiar','err'));
+};
+
 window.showTab=function(t,el){
   document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
