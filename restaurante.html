@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GG Express — Restaurante</title>
+<title>GG Express — Empresa</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -97,7 +97,7 @@ tr:last-child td{border-bottom:none}
     <div class="login-logo">
       <div class="mark">🍃</div>
       <h1>GG <span>Express</span></h1>
-      <p>Acesso do Restaurante</p>
+      <p>Acesso da Empresa</p>
     </div>
     <div id="login-err" class="login-err">Usuário ou senha incorretos</div>
     <div class="field"><label>Usuário</label><input type="text" id="inp-usuario" placeholder="Seu usuário de acesso"></div>
@@ -215,7 +215,7 @@ window.doLogin = function() {
   const usuario=document.getElementById('inp-usuario').value.trim().toLowerCase();
   const senha=document.getElementById('inp-senha').value;
   if(!usuario||!senha){showErr('Preencha usuário e senha');return;}
-  onValue(ref(db,'restaurantes'),snap=>{
+  onValue(ref(db,'Empresas'),snap=>{
     const d=snap.val()||{};
     const rest=Object.entries(d).map(([id,v])=>({id,...v})).find(r=>r.usuario===usuario&&r.senha===senha);
     if(rest){
