@@ -151,6 +151,8 @@ header{background:var(--s1);border-bottom:1px solid var(--border);padding:0 20px
         <button class="btn-ghost" onclick="sair()">Sair</button>
       </div>
 
+      <button class="btn btn-ghost" id="btn-notificacoes" style="width:100%;display:none" onclick="ativarNotificacoes()">🔔 Ativar notificações</button>
+
       <div class="status-btns" id="status-btns-wrap">
         <div class="status-btn" id="btn-disp" onclick="setStatus('disponivel')">● Disponível</div>
         <div class="status-btn" id="btn-pausa" onclick="setStatus('pausa')">⏸ Pausa</div>
@@ -197,8 +199,12 @@ const app = initializeApp(firebaseConfig);
 const db  = getDatabase(app);
 
 let motoAtual = JSON.parse(localStorage.getItem('motoAtual')||'null');
+const REPASSE_MOTOBOY = 7.5;
+const SW_PATH = './ggexpress-sw.js';
 let statusAtual = 'disponivel';
 let corridasVistas = new Set();
+let corridasNotificadas = new Set();
+let swRegistration = null;
 let alarmInterval = null;
 let todasEntregas = [];
 
@@ -222,10 +228,11 @@ window.entrar = async function() {
   if (!found) { showErr('Usuário ou senha incorretos'); return; }
   if (found.online) { showErr('Este usuário já está online em outro dispositivo'); return; }
 
-  motoAtual = {id: found.id, nome: found.nome, tel: found.tel||''};
+  const statusInicial = found.status==='pausa' ? 'pausa' : 'disponivel';
+  motoAtual = {id: found.id, nome: found.nome, tel: found.tel||'', pix: found.pix||'', status: statusInicial};
   localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
-  await update(ref(db,'motoboys/'+found.id), {online:true, status:'disponivel'});
-  iniciarDash();
+  await update(ref(db,'motoboys/'+found.id), {online:true, status:statusInicial});
+  iniciarDash(statusInicial);
 };
 
 window.sair = async function() {
@@ -245,6 +252,8 @@ window.sair = async function() {
 window.setStatus = function(s) {
   if (statusAtual==='ocupado') return;
   statusAtual = s;
+  motoAtual.status = s;
+  localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
   update(ref(db,'motoboys/'+motoAtual.id), {status:s});
   renderToggle(s);
   if (s==='pausa') pararAlarme();
@@ -261,14 +270,79 @@ function renderToggle(s) {
   document.getElementById('btn-pausa').className = 'status-btn'+(s==='pausa'?' on-yellow':'');
 }
 
+
+async function registrarServiceWorker() {
+  if (!('serviceWorker' in navigator)) return null;
+  try {
+    swRegistration = await navigator.serviceWorker.register(SW_PATH);
+    return swRegistration;
+  } catch (e) {
+    console.warn('Falha ao registrar service worker:', e);
+    return null;
+  }
+}
+
+function atualizarBotaoNotificacao() {
+  const btn = document.getElementById('btn-notificacoes');
+  if (!btn) return;
+  if (!('Notification' in window)) {
+    btn.style.display = 'none';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = 'flex';
+  }
+}
+
+window.ativarNotificacoes = async function() {
+  if (!('Notification' in window)) {
+    alert('Este navegador não suporta notificações do sistema.');
+    return;
+  }
+  await registrarServiceWorker();
+  const perm = await Notification.requestPermission();
+  atualizarBotaoNotificacao();
+  if (perm === 'granted') {
+    toast('Notificações ativadas!');
+  } else {
+    toast('Permissão de notificação não concedida','err');
+  }
+};
+
+async function notificarSistema(pedido) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  await registrarServiceWorker();
+  const titulo = 'Nova entrega disponível';
+  const corpo = `${pedido.restNome||'Empresa'} • ${pedido.itens||'Pedido'}`
+  const options = {
+    body: corpo,
+    tag: `pedido-${pedido.id}`,
+    renotify: true,
+    data: { url: location.href, pedidoId: pedido.id }
+  };
+  try {
+    if (swRegistration && swRegistration.showNotification) {
+      await swRegistration.showNotification(titulo, options);
+    } else {
+      new Notification(titulo, options);
+    }
+  } catch (e) {
+    console.warn('Falha ao exibir notificação:', e);
+  }
+}
+
 // ── ALARME ────────────────────────────────────────────────
 function iniciarAlarme(disponiveis) {
-  if (alarmInterval||!disponiveis.length||statusAtual!=='disponivel') return;
-  notificar();
-  alarmInterval = setInterval(() => {
-    if (!disponiveis.length||statusAtual!=='disponivel') { pararAlarme(); return; }
+  if (!disponiveis.length || statusAtual!=='disponivel') return;
+  if (!alarmInterval) {
     notificar();
-  }, 5000);
+    alarmInterval = setInterval(() => {
+      if (!disponiveis.length || statusAtual!=='disponivel') { pararAlarme(); return; }
+      notificar();
+    }, 5000);
+  }
 }
 function pararAlarme() {
   if (alarmInterval) { clearInterval(alarmInterval); alarmInterval=null; }
@@ -289,12 +363,15 @@ function notificar() {
 }
 
 // ── INICIAR ───────────────────────────────────────────────
-function iniciarDash() {
+async function iniciarDash(statusInicial = (motoAtual?.status||'disponivel')) {
+  await registrarServiceWorker();
+  atualizarBotaoNotificacao();
   document.getElementById('screen-login').style.display='none';
   document.getElementById('screen-dash').style.display='flex';
   document.getElementById('screen-dash').style.flexDirection='column';
   document.getElementById('screen-dash').style.minHeight='calc(100vh - 60px)';
-  renderToggle('disponivel');
+  statusAtual = statusInicial === 'pausa' ? 'pausa' : 'disponivel';
+  renderToggle(statusAtual);
 
   onValue(ref(db,'pedidos'), snap => {
     const d = snap.val()||{};
@@ -307,8 +384,12 @@ function iniciarDash() {
     todasEntregas = todos.filter(p=>p.status==='entregue'&&p.motoId===motoAtual.id);
 
     if (statusAtual==='disponivel') {
+      const novasCorridas = disponiveis.filter(p=>!corridasNotificadas.has(p.id));
+      novasCorridas.forEach(p=>{
+        corridasNotificadas.add(p.id);
+        notificarSistema(p);
+      });
       if (disponiveis.length>0) {
-        disponiveis.forEach(p=>{ if(!corridasVistas.has(p.id)) corridasVistas.add(p.id); });
         iniciarAlarme(disponiveis);
       } else {
         pararAlarme();
@@ -367,8 +448,13 @@ function renderPrincipal(disponiveis, emColeta, emEntrega) {
     return;
   }
   if (!disponiveis.length) {
-    if (statusAtual==='ocupado') { statusAtual='disponivel'; renderToggle('disponivel'); }
-    idleEl.innerHTML=`<div class="idle-state"><div class="idle-ico">🛵</div><div style="font-size:14px">Aguardando entregas...</div></div>`;
+    if (statusAtual==='ocupado') {
+      statusAtual='disponivel';
+      motoAtual.status='disponivel';
+      localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+      renderToggle('disponivel');
+    }
+    idleEl.innerHTML=`<div class="idle-state"><div class="idle-ico">🛵</div><div style="font-size:14px">${statusAtual==='pausa'?'Você está em pausa':'Aguardando entregas...'}</div></div>`;
     return;
   }
 
@@ -410,7 +496,10 @@ window.aceitarEntrega = async function(pid) {
   pararAlarme();
   await update(ref(db,'pedidos/'+pid),{status:'em-coleta',motoId:motoAtual.id,motoNome:motoAtual.nome});
   await update(ref(db,'motoboys/'+motoAtual.id),{status:'ocupado'});
-  statusAtual='ocupado'; renderToggle('ocupado');
+  statusAtual='ocupado';
+  motoAtual.status='ocupado';
+  localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+  renderToggle('ocupado');
 };
 window.confirmarColeta = async function(pid) {
   await update(ref(db,'pedidos/'+pid),{status:'em-rota'});
@@ -418,9 +507,12 @@ window.confirmarColeta = async function(pid) {
 window.confirmarEntrega = async function(pid) {
   await update(ref(db,'pedidos/'+pid),{status:'entregue',entregueEm:Date.now()});
   await update(ref(db,'motoboys/'+motoAtual.id),{status:'disponivel'});
-  statusAtual='disponivel'; renderToggle('disponivel');
+  statusAtual='disponivel';
+  motoAtual.status='disponivel';
+  localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+  renderToggle('disponivel');
 };
-window.recusar = function(pid) { corridasVistas.add(pid); };
+window.recusar = function(pid) { corridasVistas.add(pid); corridasNotificadas.add(pid); toast('Corrida ignorada.'); };
 
 // ── RELATÓRIO ─────────────────────────────────────────────
 window.mPeriodo = function(p) {
@@ -457,8 +549,8 @@ window.renderRelatorio = function() {
   if (iniStr) hist=hist.filter(p=>(p.criadoEm||0)>=new Date(iniStr+'T00:00:00').getTime());
   if (fimStr) hist=hist.filter(p=>(p.criadoEm||0)<=new Date(fimStr+'T23:59:59').getTime());
 
-  const total=hist.reduce((s,p)=>s+Number(p.taxaMotoboy||6.5),0);
-  const totalPago=hist.filter(p=>p.motoPago).reduce((s,p)=>s+Number(p.taxaMotoboy||6.5),0);
+  const total=hist.reduce((s,p)=>s+Number(p.taxaMotoboy||REPASSE_MOTOBOY),0);
+  const totalPago=hist.filter(p=>p.motoPago).reduce((s,p)=>s+Number(p.taxaMotoboy||REPASSE_MOTOBOY),0);
   const totalPend=total-totalPago;
   const periodo=iniStr&&fimStr?`${iniStr.split('-').reverse().join('/')} a ${fimStr.split('-').reverse().join('/')}`:'todo o período';
 
@@ -473,8 +565,8 @@ window.renderRelatorio = function() {
     const k=p.restId||'?';
     if(!porRest[k]) porRest[k]={nome:p.restNome||'?',qtd:0,ganhos:0,pago:0};
     porRest[k].qtd++;
-    porRest[k].ganhos+=Number(p.taxaMotoboy||6.5);
-    if(p.motoPago) porRest[k].pago+=Number(p.taxaMotoboy||6.5);
+    porRest[k].ganhos+=Number(p.taxaMotoboy||REPASSE_MOTOBOY);
+    if(p.motoPago) porRest[k].pago+=Number(p.taxaMotoboy||REPASSE_MOTOBOY);
   });
 
   document.getElementById('moto-relatorio').innerHTML=`
@@ -512,7 +604,7 @@ window.renderRelatorio = function() {
         return `<div class="rel-row">
           <div><div class="rel-k">${p.cliente}</div><div class="rel-sub">${p.restNome||'—'} · ${dtFmt}</div></div>
           <div style="text-align:right">
-            <div class="rel-v" style="color:var(--accent)">R$ ${Number(p.taxaMotoboy||6.5).toFixed(2).replace('.',',')}</div>
+            <div class="rel-v" style="color:var(--accent)">R$ ${Number(p.taxaMotoboy||REPASSE_MOTOBOY).toFixed(2).replace('.',',')}</div>
             <div>${p.motoPago?'<span class="pago-badge">pago</span>':'<span class="pend-badge">pendente</span>'}</div>
           </div>
         </div>`;
@@ -536,15 +628,22 @@ function showErr(msg) {
 // Auto-login
 if (motoAtual) {
   onValue(ref(db,'motoboys/'+motoAtual.id), snap=>{
-    if (snap.val()&&!snap.val().online) {
-      update(ref(db,'motoboys/'+motoAtual.id),{online:true,status:'disponivel'});
-      iniciarDash();
-    } else if (!snap.val()) {
+    const dados = snap.val();
+    if (dados && !dados.online) {
+      const statusRecuperado = dados.status==='pausa' ? 'pausa' : 'disponivel';
+      motoAtual = {...motoAtual, nome:dados.nome||motoAtual.nome, tel:dados.tel||'', pix:dados.pix||'', status:statusRecuperado};
+      localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+      update(ref(db,'motoboys/'+motoAtual.id),{online:true,status:statusRecuperado});
+      iniciarDash(statusRecuperado);
+    } else if (!dados) {
       localStorage.removeItem('motoAtual');
       motoAtual=null;
       document.getElementById('screen-login').style.display='flex';
     } else {
-      iniciarDash();
+      const statusRecuperado = dados.status==='pausa' ? 'pausa' : (dados.status==='ocupado' ? 'ocupado' : 'disponivel');
+      motoAtual = {...motoAtual, nome:dados.nome||motoAtual.nome, tel:dados.tel||'', pix:dados.pix||'', status:statusRecuperado};
+      localStorage.setItem('motoAtual', JSON.stringify(motoAtual));
+      iniciarDash(statusRecuperado);
     }
   },{onlyOnce:true});
 } else {
