@@ -200,13 +200,13 @@ tr:hover td{background:rgba(255,255,255,.015)}
     <!-- Empresas -->
     <div id="panel-Empresas" class="panel">
       <div class="section-head">
-        <div class="section-title">Empresas cadastrados</div>
+        <div class="section-title">Empresas cadastradas</div>
         <button class="btn btn-primary btn-sm" onclick="abrirModal('modal-rest')">+ Nova Empresa</button>
       </div>
       <div class="card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Nome</th><th>Usuário</th><th>Endereço</th><th>Telefone</th><th>Taxa padrão</th><th></th></tr></thead>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Endereço</th><th>Telefone</th><th>Repasse por entrega</th><th></th></tr></thead>
             <tbody id="tabela-Empresas"></tbody>
           </table>
         </div>
@@ -287,7 +287,7 @@ tr:hover td{background:rgba(255,255,255,.015)}
         <div class="section-title" style="margin-bottom:14px">Detalhamento</div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Empresa</th><th>Motoboy</th><th>Taxa total</th><th>GG Express</th></tr></thead>
+            <thead><tr><th>Data/Hora</th><th>Cliente</th><th>Empresa</th><th>Motoboy</th><th>Repasse da empresa</th><th>GG Express</th></tr></thead>
             <tbody id="rel-tabela"></tbody>
           </table>
         </div>
@@ -301,12 +301,12 @@ tr:hover td{background:rgba(255,255,255,.015)}
   <div class="modal">
     <div class="modal-title">Nova Empresa <button class="modal-close" onclick="fecharModal('modal-rest')">✕</button></div>
     <div class="form-grid">
-      <div class="form-group full"><label>Nome do Empresa</label><input type="text" id="rest-nome" placeholder="Ex: Burger House"></div>
+      <div class="form-group full"><label>Nome da empresa</label><input type="text" id="rest-nome" placeholder="Ex: Burger House"></div>
       <div class="form-group"><label>Usuário de acesso</label><input type="text" id="rest-usuario" placeholder="Ex: burguer"></div>
       <div class="form-group"><label>Senha de acesso</label><input type="text" id="rest-senha" placeholder="Defina uma senha"></div>
       <div class="form-group full"><label>Endereço completo</label><input type="text" id="rest-end" placeholder="Rua, número, bairro"></div>
       <div class="form-group"><label>Telefone</label><input type="text" id="rest-tel" placeholder="(xx) xxxxx-xxxx"></div>
-      <div class="form-group"><label>Taxa padrão (R$, mín. 9)</label><input type="number" id="rest-taxa" placeholder="9.00" step="0.50" min="9" value="9"></div>
+      <div class="form-group"><label>Repasse por entrega (R$ 9,50 fixo)</label><input type="number" id="rest-taxa" placeholder="9.50" step="0.50" min="9.5" value="9.5"></div>
     </div>
     <div style="margin-top:18px;display:flex;gap:9px;justify-content:flex-end">
       <button class="btn btn-ghost" onclick="fecharModal('modal-rest')">Cancelar</button>
@@ -401,7 +401,7 @@ function renderDashboard() {
   document.getElementById('d-total').textContent=ph.length;
   document.getElementById('d-andamento').textContent=and.length;
   document.getElementById('d-entregues').textContent=ent.length;
-  document.getElementById('d-fat').textContent='R$'+(ent.length*2.5).toFixed(2).replace('.',',');
+  document.getElementById('d-fat').textContent='R$'+(ent.length*2).toFixed(2).replace('.',',');
 
   const online=motoboys.filter(m=>m.online);
   const mEl=document.getElementById('dash-motoboys');
@@ -437,27 +437,27 @@ window.salvarEmpresa=function(){
   const senha=document.getElementById('rest-senha').value.trim();
   const end=document.getElementById('rest-end').value.trim();
   const tel=document.getElementById('rest-tel').value.trim();
-  const taxa=parseFloat(document.getElementById('rest-taxa').value)||9;
+  const taxa=parseFloat(document.getElementById('rest-taxa').value)||9.5;
   if(!nome||!usuario||!senha||!end){toast('Preencha todos os campos obrigatórios','err');return;}
-  if(taxa<9){toast('Taxa mínima é R$9,00','err');return;}
+  if(taxa<9.5){toast('O repasse mínimo é R$9,50','err');return;}
   // Verifica usuário duplicado
   if(Empresas.some(r=>r.usuario===usuario)){toast('Usuário já existe','err');return;}
   push(ref(db,'Empresas'),{nome,usuario,senha,endereco:end,tel,taxa,ativo:true,criadoEm:Date.now()});
   fecharModal('modal-rest');
   ['rest-nome','rest-usuario','rest-senha','rest-end','rest-tel','rest-taxa'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('rest-taxa').value='9';
-  toast('Empresa cadastrado!');
+  document.getElementById('rest-taxa').value='9.5';
+  toast('Empresa cadastrada!');
 };
 
 function renderEmpresas(){
   const tb=document.getElementById('tabela-Empresas');
-  if(!Empresas.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">Nenhum Empresa cadastrado</td></tr>';return;}
+  if(!Empresas.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:28px">Nenhuma empresa cadastrada</td></tr>';return;}
   tb.innerHTML=Empresas.map(r=>`<tr>
     <td class="name">${r.nome}</td>
     <td><code style="background:var(--s2);padding:2px 6px;border-radius:5px;font-size:12px">${r.usuario}</code></td>
     <td>${r.endereco}</td>
     <td>${r.tel||'—'}</td>
-    <td style="color:var(--accent);font-weight:600">R$${Number(r.taxa||9).toFixed(2).replace('.',',')}</td>
+    <td style="color:var(--accent);font-weight:600">R$${Number(r.taxa||9.5).toFixed(2).replace('.',',')}</td>
     <td><button class="btn btn-danger btn-sm" onclick="remover('Empresas','${r.id}')">Remover</button></td>
   </tr>`).join('');
 }
@@ -521,7 +521,7 @@ function renderTabelaPedidos(){
       <td class="name">${p.cliente}</td>
       <td>${p.restNome||'—'}</td>
       <td>${p.motoNome||'—'}</td>
-      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9).toFixed(2).replace('.',',')}</td>
+      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9.5).toFixed(2).replace('.',',')}</td>
       <td>${hora}</td>
       <td><span class="badge ${bm[p.status]||'b-gray'}">${lm[p.status]||p.status}</span></td>
     </tr>`;
@@ -573,8 +573,8 @@ window.renderFinanceiro=function(){
       const k=p.restId||'?';
       if(!porRest[k])porRest[k]={nome:p.restNome||'?',qtd:0,gg:0,moto:0,pago:p.restPago||false};
       porRest[k].qtd++;
-      porRest[k].gg+=2.5;
-      porRest[k].moto+=Number(p.taxaMotoboy||6.5);
+      porRest[k].gg+=9.5;
+      porRest[k].moto+=Number(p.taxaMotoboy||7.5);
       if(p.restPago)porRest[k].pago=true;
     });
 
@@ -585,19 +585,19 @@ window.renderFinanceiro=function(){
         const k=p.motoId;
         if(!porMoto[k])porMoto[k]={nome:p.motoNome||'?',qtd:0,ganhos:0,pago:p.motoPago||false};
         porMoto[k].qtd++;
-        porMoto[k].ganhos+=Number(p.taxaMotoboy||6.5);
+        porMoto[k].ganhos+=Number(p.taxaMotoboy||7.5);
         if(p.motoPago)porMoto[k].pago=true;
       }
     });
 
-    const totalGG=pSem.length*2.5;
+    const totalGG=pSem.length*2;
     const totalMoto=Object.values(porMoto).reduce((s,m)=>s+m.ganhos,0);
 
     return `<div class="semana-card">
       <div class="semana-head">
         <div>
           <div class="semana-title">${iniStr} — ${fimStr}</div>
-          <div style="font-size:12px;color:var(--text2);margin-top:2px">${pSem.length} entregas · GG Express: R$${totalGG.toFixed(2).replace('.',',')} · Motoboys: R$${totalMoto.toFixed(2).replace('.',',')}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">${pSem.length} entregas · Total recebido: R$${(pSem.length*9.5).toFixed(2).replace('.',',')} · GG Express: R$${totalGG.toFixed(2).replace('.',',')} · Motoboys: R$${totalMoto.toFixed(2).replace('.',',')}</div>
         </div>
       </div>
       ${Object.entries(porRest).map(([rid,r])=>{
@@ -607,7 +607,7 @@ window.renderFinanceiro=function(){
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
             <div>
               <div style="font-size:13px;font-weight:700">${r.nome}</div>
-              <div style="font-size:12px;color:var(--text2)">${r.qtd} entregas · deve pagar R$${r.gg.toFixed(2).replace('.',',')} para GG Express</div>
+              <div style="font-size:12px;color:var(--text2)">${r.qtd} entregas · deve repassar R$${r.gg.toFixed(2).replace('.',',')} no total</div>
             </div>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
               <span id="${pagRestKey}" class="badge ${r.pago?'b-green':'b-yellow'}">${r.pago?'✓ Pagou':'Pendente'}</span>
@@ -644,7 +644,7 @@ window.marcarRestPago=function(semId,rid,badgeId){
   const fim=ini+7*24*60*60*1000;
   pedidos.filter(p=>p.restId===rid&&(p.criadoEm||0)>=ini&&(p.criadoEm||0)<fim&&p.status==='entregue')
     .forEach(p=>update(ref(db,'pedidos/'+p.id),{restPago:true}));
-  toast('Pagamento do Empresa registrado!');
+  toast('Pagamento da empresa registrado!');
 };
 
 window.marcarMotoPago=function(semId,mid,badgeId){
@@ -675,20 +675,20 @@ window.gerarRelatorio=function(){
   const fimStr=document.getElementById('rel-data-fim')?.value;
   const restFiltro=document.getElementById('rel-rest-filtro')?.value;
   const sel=document.getElementById('rel-rest-filtro');
-  if(sel){sel.innerHTML='<option value="">Todos os Empresas</option>'+Empresas.map(r=>`<option value="${r.id}"${r.id===restFiltro?' selected':''}>${r.nome}</option>`).join('');}
+  if(sel){sel.innerHTML='<option value="">Todas as empresas</option>'+Empresas.map(r=>`<option value="${r.id}"${r.id===restFiltro?' selected':''}>${r.nome}</option>`).join('');}
 
   let lista=pedidos.filter(p=>p.status==='entregue');
   if(iniStr)lista=lista.filter(p=>(p.criadoEm||0)>=new Date(iniStr+'T00:00:00').getTime());
   if(fimStr)lista=lista.filter(p=>(p.criadoEm||0)<=new Date(fimStr+'T23:59:59').getTime());
   if(restFiltro)lista=lista.filter(p=>p.restId===restFiltro);
 
-  const totalTaxas=lista.reduce((s,p)=>s+Number(p.taxaEntrega||9),0);
-  const ggParte=lista.length*2.5;
-  const motosParte=totalTaxas-ggParte;
+  const totalTaxas=lista.reduce((s,p)=>s+Number(p.taxaEntrega||9.5),0);
+  const ggParte=lista.length*2;
+  const motosParte=lista.reduce((s,p)=>s+Number(p.taxaMotoboy||7.5),0);
 
   document.getElementById('rel-stats').innerHTML=`
     <div class="stat-card green"><div class="stat-label">Entregas</div><div class="stat-val green">${lista.length}</div></div>
-    <div class="stat-card orange"><div class="stat-label">Total taxas</div><div class="stat-val orange">R$${totalTaxas.toFixed(2).replace('.',',')}</div></div>
+    <div class="stat-card orange"><div class="stat-label">Total a receber</div><div class="stat-val orange">R$${totalTaxas.toFixed(2).replace('.',',')}</div></div>
     <div class="stat-card yellow"><div class="stat-label">GG Express</div><div class="stat-val yellow">R$${ggParte.toFixed(2).replace('.',',')}</div></div>
     <div class="stat-card blue"><div class="stat-label">Motoboys</div><div class="stat-val blue">R$${motosParte.toFixed(2).replace('.',',')}</div></div>`;
 
@@ -702,7 +702,7 @@ window.gerarRelatorio=function(){
         <div>
           <div style="font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px">Cobrança — ${rest?.nome||'Empresa'}</div>
           <div style="font-size:13px;color:var(--text2)">Período: ${periodo}</div>
-          <div style="font-size:13px;color:var(--text2)">${lista.length} entregas × R$2,50</div>
+          <div style="font-size:13px;color:var(--text2)">${lista.length} entregas × R$9,50</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:12px;color:var(--text2)">Valor a cobrar</div>
@@ -713,13 +713,13 @@ window.gerarRelatorio=function(){
   } else boletoBox.style.display='none';
 
   const porRest={};
-  lista.forEach(p=>{const k=p.restId||'?';if(!porRest[k])porRest[k]={nome:p.restNome||'?',qtd:0,total:0,gg:0};porRest[k].qtd++;porRest[k].total+=Number(p.taxaEntrega||9);porRest[k].gg+=2.5;});
+  lista.forEach(p=>{const k=p.restId||'?';if(!porRest[k])porRest[k]={nome:p.restNome||'?',qtd:0,total:0,gg:0};porRest[k].qtd++;porRest[k].total+=Number(p.taxaEntrega||9.5);porRest[k].gg+=9.5;});
   document.getElementById('rel-por-rest').innerHTML=Object.values(porRest).length
-    ?`<div class="report-box">${Object.values(porRest).map(r=>`<div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${r.nome}</div><div style="font-size:11px;color:var(--text2)">${r.qtd} entregas · cobrar R$${r.gg.toFixed(2).replace('.',',')}</div></div><span style="font-size:13px;font-weight:700;color:var(--accent)">R$${r.total.toFixed(2).replace('.',',')}</span></div>`).join('')}</div>`
+    ?`<div class="report-box">${Object.values(porRest).map(r=>`<div class="report-row"><div><div style="font-size:13px;font-weight:600;color:var(--text)">${r.nome}</div><div style="font-size:11px;color:var(--text2)">${r.qtd} entregas · repasse total R$${r.gg.toFixed(2).replace('.',',')}</div></div><span style="font-size:13px;font-weight:700;color:var(--accent)">R$${r.gg.toFixed(2).replace('.',',')}</span></div>`).join('')}</div>`
     :'<div class="empty"><div>Sem dados</div></div>';
 
   const porMoto={};
-  lista.forEach(p=>{if(p.motoId){if(!porMoto[p.motoId])porMoto[p.motoId]={nome:p.motoNome||'?',qtd:0,ganhos:0};porMoto[p.motoId].qtd++;porMoto[p.motoId].ganhos+=Number(p.taxaMotoboy||6.5);}});
+  lista.forEach(p=>{if(p.motoId){if(!porMoto[p.motoId])porMoto[p.motoId]={nome:p.motoNome||'?',qtd:0,ganhos:0};porMoto[p.motoId].qtd++;porMoto[p.motoId].ganhos+=Number(p.taxaMotoboy||7.5);}});
   document.getElementById('rel-motoboys').innerHTML=Object.values(porMoto).length
     ?`<div class="report-box">${Object.values(porMoto).map(m=>`<div class="report-row"><span class="report-key">${m.nome} (${m.qtd} entregas)</span><span class="report-val" style="color:var(--accent)">R$${m.ganhos.toFixed(2).replace('.',',')}</span></div>`).join('')}</div>`
     :'<div class="empty"><div>Sem dados</div></div>';
@@ -730,8 +730,8 @@ window.gerarRelatorio=function(){
     const dt=new Date(p.criadoEm);
     const dtFmt=dt.toLocaleDateString('pt-BR')+' '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
     return `<tr><td>${dtFmt}</td><td class="name">${p.cliente}</td><td>${p.restNome||'—'}</td><td>${p.motoNome||'—'}</td>
-      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9).toFixed(2).replace('.',',')}</td>
-      <td style="color:var(--yellow);font-weight:600">R$2,50</td></tr>`;
+      <td style="color:var(--accent);font-weight:600">R$${Number(p.taxaEntrega||9.5).toFixed(2).replace('.',',')}</td>
+      <td style="color:var(--yellow);font-weight:600">R$2,00</td></tr>`;
   }).join('');
 };
 
